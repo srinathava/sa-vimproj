@@ -22,9 +22,9 @@ endfunction " }}}
 
 python <<FOOBAR
 import os, commands, re, vim, time
-def startMatlabInXterm(nojvm):
-    if nojvm:
-        pid = os.spawnlp(os.P_NOWAIT, 'xterm', 'xterm', '-e', 'matlab', '-nojvm')
+def startMatlab(useXterm, *extraArgs):
+    if useXterm:
+        pid = os.spawnlp(os.P_NOWAIT, 'xterm', 'xterm', '-e', 'matlab', *extraArgs)
         # wait for the correct MATLAB process to be loaded.
         while 1:
             pst = commands.getoutput('pstree -p %d' % pid)
@@ -34,7 +34,7 @@ def startMatlabInXterm(nojvm):
                 break
             time.sleep(0.5)
     else:
-        pid = os.spawnlp(os.P_NOWAIT, 'matlab')
+        pid = os.spawnlp(os.P_NOWAIT, 'matlab', *extraArgs)
 
     vim.command('let pid = %s' % pid)
 FOOBAR
@@ -42,7 +42,7 @@ FOOBAR
 " StartMatlabNoJvm:  {{{
 " Description: 
 function! StartMatlabNoJvm()
-    python startMatlabInXterm(1)
+    python startMatlab(1, '-nojvm', '-nosplash')
 
     call gdb#gdb#Init()
     call gdb#gdb#RunCommand('handle SIGSEGV stop print')
@@ -50,10 +50,10 @@ function! StartMatlabNoJvm()
     call gdb#gdb#RedoAllBreakpoints()
     call gdb#gdb#Continue()
 endfunction " }}}
-" StartMatlabDesktop:  {{{
+" StartMatlabNoDesktop:  {{{
 " Description: 
-function! StartMatlabDesktop()
-    python startMatlabInXterm(0)
+function! StartMatlabNoDesktop()
+    python startMatlab(1, '-nodesktop', '-nosplash')
 
     call gdb#gdb#Init()
     call gdb#gdb#RunCommand('handle SIGSEGV nostop noprint')
@@ -61,8 +61,20 @@ function! StartMatlabDesktop()
     call gdb#gdb#RedoAllBreakpoints()
     call gdb#gdb#Continue()
 endfunction " }}}
-amenu &Mathworks.Debug\ MATLAB\ -nojvm :call StartMatlabNoJvm()<CR>
-amenu &Mathworks.Debug\ MATLAB\ desktop :call StartMatlabDesktop()<CR>
+" StartMatlabDesktop:  {{{
+" Description: 
+function! StartMatlabDesktop()
+    python startMatlab(0)
+
+    call gdb#gdb#Init()
+    call gdb#gdb#RunCommand('handle SIGSEGV nostop noprint')
+    call gdb#gdb#Attach(pid)
+    call gdb#gdb#RedoAllBreakpoints()
+    call gdb#gdb#Continue()
+endfunction " }}}
+amenu &Mathworks.Debug\ MATLAB\ -nojvm      :call StartMatlabNoJvm()<CR>
+amenu &Mathworks.Debug\ MATLAB\ -nodesktop  :call StartMatlabNoDesktop()<CR>
+amenu &Mathworks.Debug\ MATLAB\ desktop     :call StartMatlabDesktop()<CR>
 
 com! -nargs=1 SetMatlabCommand call SetMatlabCommandFcn(<q-args>)
 
