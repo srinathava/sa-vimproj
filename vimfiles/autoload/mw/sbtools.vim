@@ -71,7 +71,7 @@ function! mw#sbtools#DiffSubmitFile(sb1, ...)
         call mw#utils#AssertError(0, submitFile.' is not readable')
     endif
 
-    let g:DirDiffCmd = 'diffsubmitfile'
+    let g:DirDiffCmd = 'diffsubmitfile.py'
     let g:DirDiffCmdOpts = '-f '.submitFile
 
     call PrintDebug('DirDiff '.sb2.' '.sb1, 'sbtools')
