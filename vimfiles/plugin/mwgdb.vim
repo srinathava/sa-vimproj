@@ -1,90 +1,52 @@
-" Helper Python functions {{{
-python <<FOOBAR
-import os, commands, re, vim, time
-def warnVim(msg):
-    vim.command("echohl Search")
-    vim.command("echomsg '%s'" % msg)
-    vim.command("echohl None")
-
-def startMatlabLocal(useXterm, *extraArgs):
-    rootDir = vim.eval('mw#utils#GetRootDir()')
-    if not rootDir:
-        warnVim('Not in a sandbox. Cannot start MATLAB')
-        return 0
-
-    if useXterm:
-        pid = os.spawnlp(os.P_NOWAIT, 'xterm', 'xterm', '-e', 'sb', *extraArgs)
-    else:
-        pid = os.spawnlp(os.P_NOWAIT, 'sb', 'sb', *extraArgs)
-
-    # wait for the correct MATLAB process to be loaded.
-    n = 0
-    while 1:
-        pst = commands.getoutput('pstree -p %d' % pid)
-        m = re.search(r'MATLAB\((\d+)\)', pst)
-        if m:
-            return int(m.group(1))
-
-        time.sleep(0.5)
-        n += 1
-        if n == 10:
-            warnVim('Cannot attach to MATLAB')
-            return 0
-
-def startMatlab(useXterm, *extraArgs):
-    pid = startMatlabLocal(useXterm, *extraArgs)
-    vim.command('let pid = %d' % pid)
-FOOBAR
-" }}}
-
-" StartMatlabNoJvm:  {{{
+" MW_StartMatlab:  {{{
 " Description: 
-function! StartMatlabNoJvm()
-    python startMatlab(1, '-nojvm', '-nosplash')
+
+let s:scriptDir = expand('<sfile>:p:h')
+python import sys, vim
+exec "python sys.path += ['".s:scriptDir."']"
+python from startMatlab import startMatlab
+
+function! MW_StartMatlab(attach, mode)
+    exec 'python pid = startMatlab("'.a:mode.'")'
+    python vim.command('let pid = %d' % pid)
+
     if pid == 0
+        echohl Search
+        echomsg 'Cannot find MATLAB process for some reason...'
+        echohl None
         return
-    end
-    echomsg "Getting PID = ".pid
+    endif
+
+    if a:attach == 0
+        return
+    endif
 
     call gdb#gdb#Init()
-    call gdb#gdb#RunCommand('handle SIGSEGV stop print')
+
+    if a:mode == '-nojvm'
+        call gdb#gdb#RunCommand('handle SIGSEGV stop print')
+    else
+        call gdb#gdb#RunCommand('handle SIGSEGV nostop noprint')
+    endif
+
     call gdb#gdb#Attach(pid)
+
+    " set a bunch of standard breakpoints
+    call gdb#gdb#SetQueryAnswer('y')
+    call gdb#gdb#RunCommand('b client_assertion_failed')
+    call gdb#gdb#RunCommand('b assertion_failed')
+    call gdb#gdb#RunCommand('b ThrowAssertion')
+    call gdb#gdb#SetQueryAnswer('')
+
     call gdb#gdb#Continue()
 endfunction " }}}
-" StartMatlabNoDesktop:  {{{
-" Description: 
-function! StartMatlabNoDesktop()
-    python startMatlab(1, '-nodesktop', '-nosplash')
-    if pid == 0
-        return
-    end
 
-    call gdb#gdb#Init()
-    call gdb#gdb#RunCommand('handle SIGSEGV nostop noprint')
-    call gdb#gdb#Attach(pid)
-    call gdb#gdb#Continue()
-endfunction " }}}
-" StartMatlabDesktop:  {{{
-" Description: 
-function! StartMatlabDesktop()
-    python startMatlab(0)
-    if pid == 0
-        return
-    end
+amenu &Mathworks.&Debug.&1\ MATLAB\ -nojvm      :call MW_StartMatlab(1, '-nojvm')<CR>
+amenu &Mathworks.&Debug.&2\ MATLAB\ -nodesktop  :call MW_StartMatlab(1, '-nodesktop')<CR>
+amenu &Mathworks.&Debug.&3\ MATLAB\ desktop     :call MW_StartMatlab(1, '-desktop')<CR>
 
-    call gdb#gdb#Init()
-    call gdb#gdb#RunCommand('handle SIGSEGV nostop noprint')
-    call gdb#gdb#Attach(pid)
-    call gdb#gdb#Continue()
-endfunction " }}}
-amenu &Mathworks.&Debug.&1\ MATLAB\ -nojvm      :call StartMatlabNoJvm()<CR>
-amenu &Mathworks.&Debug.&2\ MATLAB\ -nodesktop  :call StartMatlabNoDesktop()<CR>
-amenu &Mathworks.&Debug.&3\ MATLAB\ desktop     :call StartMatlabDesktop()<CR>
-
-amenu &Mathworks.&Run.&1\ MATLAB\ -nojvm      :python startMatlab(1, '-nojvm', '-nosplash')<CR>
-amenu &Mathworks.&Run.&2\ MATLAB\ -nodesktop  :python startMatlab(1, '-nodesktop', '-nosplash')<CR>
-amenu &Mathworks.&Run.&3\ MATLAB\ desktop     :python startMatlab(0)<CR>
-
-com! -nargs=1 SetMatlabCommand call SetMatlabCommandFcn(<q-args>)
+amenu &Mathworks.&Run.&1\ MATLAB\ -nojvm        :call MW_StartMatlab(0, '-nojvm')<CR>
+amenu &Mathworks.&Run.&2\ MATLAB\ -nodesktop    :call MW_StartMatlab(0, '-nodesktop')<CR>
+amenu &Mathworks.&Run.&3\ MATLAB\ desktop       :call MW_StartMatlab(0, '-desktop')<CR>
 
 " vim: fdm=marker

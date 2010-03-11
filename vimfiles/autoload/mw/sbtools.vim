@@ -3,6 +3,11 @@
 " ============================================================================== 
 let s:scriptPath = expand('<sfile>:p:h')
 
+if !exists('*PrintDebug')
+function! PrintDebug(...)
+endfunction
+endif
+
 " mw#sbtools#DiffWithOther: diffs with file in another sandbox {{{
 function! mw#sbtools#DiffWithOther(otherDir)
     let otherDir = mw#utils#NormalizeSandbox(a:otherDir)
@@ -105,7 +110,7 @@ function! mw#sbtools#LoadSession()
 endfunction " }}}
 
 " ==============================================================================
-" Findign in project/solution
+" Finding in project/solution
 " ============================================================================== 
 " mw#sbtools#FindIn:  {{{
 " Description: 
@@ -124,11 +129,110 @@ function! mw#sbtools#FindIn(prog)
 endfunction " }}}
 " mw#sbtools#FindInProj: finds pattern in project {{{
 function! mw#sbtools#FindInProj()
-    call mw#sbtools#FindIn('findinproj.py')
+    call mw#sbtools#FindIn('findInProj.py')
 endfunction " }}}
 " mw#sbtools#FindInSolution: finds pattern in project {{{
 function! mw#sbtools#FindInSolution()
-    call mw#sbtools#FindIn('findinsoln.py')
+    call mw#sbtools#FindIn('findInSoln.py')
+endfunction " }}}
+
+" ==============================================================================
+" Editing files fast
+" ============================================================================== 
+let g:EditFileComplete_Debug = ''
+let s:lastArg = ''
+" mw#sbtools#EditFileCompleteFunc {{{
+function! mw#sbtools#EditFileCompleteFunc(A,L,P)
+    " let g:EditFileComplete_Debug .= "called with '".a:A."', lastArg = '".s:lastArg."'\n"
+
+    let alreadyFiltered = 0
+    if s:lastArg != '' && a:A =~ '^'.s:lastArg
+        let files = s:lastFiles
+        let alreadyFiltered = 1
+    else
+        let g:EditFileComplete_Debug .= "doing sblocate\n"
+        let files = split(system('sblocate '.a:A), "\n")
+    end
+    " let g:EditFileComplete_Debug .= "files = ".join(files, "\n")."\n"
+
+    if alreadyFiltered == 0
+        call filter(files, 'v:val !~ "CVS"')
+        call filter(files, 'v:val =~ "\\(cpp\\|hpp\\|m\\)$"')
+        " call filter(files, 'v:val =~ "matlab/\\(src/\\(cg_ir\\|rtwcg\\|simulink\\)\\|toolbox/stateflow\\|test/tools/sfeml\\)"')
+        call filter(files, 'v:val =~ "/'.a:A.'[^/]*$"')
+        call map(files, 'matchstr(v:val, "'.a:A.'[^/]*$")') 
+    else
+        call filter(files, 'v:val =~ "^'.a:A.'"')
+    endif
+
+    let s:lastArg = a:A
+    let s:lastFiles = files
+    return files
+endfun
+" }}}
+" mw#sbtools#EditFileUsingLocate {{{
+function! mw#sbtools#EditFileUsingLocate(file)
+    let files = split(system('sblocate '.a:file), "\n")
+    for f in files
+        if filereadable(f) && f =~ a:file.'$'
+            exec 'drop '.f
+            return
+        endif
+    endfor
+endfun
+" }}}
+
+" ==============================================================================
+" Compiling projects
+" ============================================================================== 
+" s:SetMakePrg: sets the 'makeprg' option for the current buffer {{{
+
+let g:MWDebug = 1
+function! s:SetMakePrg()
+    let &l:makeprg = 'vim_make NORUNTESTS=1'
+    if g:MWDebug == 1
+        let &l:makeprg .= ' DEBUG=1'
+    endif
+endfunction " }}}
+" mw#sbtools#CompileProject: compiles the present flag {{{
+function! mw#sbtools#CompileProject()
+    let olddir = getcwd()
+    let filePath = expand('%:p:h')
+
+    let modDepFilePath = findfile('MODULE_DEPENDENCIES', filePath.';')
+    if modDepFilePath != ''
+        exec 'cd '.fnamemodify(modDepFilePath, ':p:h')
+    elseif filePath =~ 'matlab/toolbox/stateflow/src'
+        exec 'cd '.matchstr(filePath, '^.*toolbox/stateflow/src')
+    elseif filePath =~ 'matlab/src'
+        exec 'cd '.matchstr(filePath, '^.*matlab/src/\w\+')
+    else
+        echohl ErrorMsg
+        echomsg "Do not know how to handle current file"
+        echohl None
+        return
+    end
+    call s:SetMakePrg()
+    make!
+    cwindow
+
+    if expand('%:p') != ''
+        exec 'silent! !genVimTags.py '.expand('%:p').' &'
+    endif
+
+    exec 'cd '.olddir
+endfunction " }}}
+" mw#sbtools#CompileFile: compiles present file {{{
+" Description: 
+function! mw#sbtools#CompileFile()
+    let olddir = getcwd()
+
+    exec 'cd '.expand('%:p:h')
+    let &l:makeprg = 'sbcc -mc '.expand('%:p')
+    make! 
+    cwindow
+    
+    exec 'cd '.olddir
 endfunction " }}}
 
 " vim: fdm=marker

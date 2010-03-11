@@ -4,6 +4,6 @@ function! mw#addHeaderProtection#DoIt()
     let dir = expand('%:p:h:t')
 
     let comment = '_'.dir.'_'.fname.'_h_'
-    call append(0, ["#ifndef ".comment, "#define ".comment, ""])
+    call append(0, ["#ifndef ".comment, "#define ".comment, "", "#ifdef SUPPORTS_PRAGMA_ONCE", "#pragma once", "#endif", ""])
     call append(line('$'), ["", "#endif // ".comment, ""])
 endfunction " }}}
