@@ -1,0 +1,68 @@
+
+let s:tagStack = []
+
+" s:JumpTo:  {{{
+function! s:JumpTo(tag)
+    let s:tagStack += [s:GetPos()]
+    exec 'keepjumps drop '.a:tag['filename']
+
+    let mtxt = a:tag['cmd']
+    let start = stridx(mtxt, '/^') + 2
+    let end = strridx(mtxt, '/')
+    if mtxt[end - 1] == '$'
+        let end = end - 1
+    endif
+    let tagpat = '\V\^' . strpart(mtxt, start, end - start) .
+        \ (mtxt[end] == '$' ? '\$' : '')
+    silent call search(tagpat, 'w')
+endfunction " }}}
+
+function! s:GetPos()
+    let pos = getpos('.')
+    let pos[0] = bufnr('%')
+    return pos
+endfunction
+
+function! s:SetPos(pos)
+    let bufnum = a:pos[0]
+    let winnum = bufwinnr(bufnum)
+    if winnum == -1
+        exec 'drop #'.bufnum
+    else
+        exec winnum.' wincmd w'
+    endif
+    call setpos('.', a:pos)
+endfunction
+
+" #back:  {{{
+function! mw#tag#back()
+    if len(s:tagStack) > 0
+        let lastPos = remove(s:tagStack, -1)
+        call s:SetPos(lastPos)
+    else
+        echohl Error
+        echomsg "Tag stack empty"
+        echohl None
+    endif
+endfunction " }}}
+" #goto: {{{
+" Description:
+function! mw#tag#goto(tagName)
+    let tl = taglist('^'.a:tagName.'$')
+    let n = 1
+    for tag in tl
+        let kind = get(tag, 'kind', '')
+        if kind == 'f'
+            call s:JumpTo(tag)
+            return
+        endif
+        let n = n + 1
+    endfor
+    if len(tl) > 0
+        call s:JumpTo(tl[0])
+    else
+        echohl Error
+        echomsg 'Tag for '.a:tagName.' not found'
+        echohl None
+    endif
+endfunction " }}}
