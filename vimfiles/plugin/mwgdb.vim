@@ -3,7 +3,7 @@
 
 let s:scriptDir = expand('<sfile>:p:h')
 python import sys, vim
-exec "python sys.path += ['".s:scriptDir."']"
+exec "python sys.path += [r'".s:scriptDir."']"
 python from startMatlab import startMatlab
 
 function! MW_StartMatlab(attach, mode)
