@@ -23,13 +23,13 @@ try:
             if proj.includesFile(fname):
                 # add project tags
                 for inc in proj.includes:
-                    vim.command("let &l:tags .= ',%s'" % path.join(rootDir, inc['path'], inc['tagsFile']))
+                    vim.command('let &l:tags .= ",%s"' % path.join(rootDir, inc['path'], inc['tagsFile']))
 
                 # add imported header tags.
                 for dep in proj.depends:
                     dep_proj = soln.getProjByName(dep)
                     for inc in dep_proj.exports:
-                        vim.command("let &l:tags .= ',%s'" % path.join(rootDir, inc['path'], inc['tagsFile']))
+                        vim.command('let &l:tags .= ",%s"' % path.join(rootDir, inc['path'], inc['tagsFile']))
                     
 
 except ImportError:
