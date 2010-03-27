@@ -212,8 +212,10 @@ function! mw#sbtools#CompileProject()
         echohl None
         return
     end
+    let oldMakePrg = &l:makeprg
     call s:SetMakePrg()
     make!
+    let &l:makeprg = oldMakePrg
     cwindow
 
     if expand('%:p') != ''
@@ -228,8 +230,10 @@ function! mw#sbtools#CompileFile()
     let olddir = getcwd()
 
     exec 'cd '.expand('%:p:h')
-    let &l:makeprg = 'sbcc -mc '.expand('%:p')
+    let oldMakePrg = &l:makeprg
+    let &l:makeprg = "sbcc -skip 'lint RELEASE something' ".expand('%:p')
     make! 
+    let &l:makeprg = oldMakePrg
     cwindow
     
     exec 'cd '.olddir
