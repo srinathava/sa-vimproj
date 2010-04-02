@@ -4,11 +4,6 @@ import sys
 import os
 from os import path
 
-if sys.platform == 'linux2':
-    sys.path += ['/home/savadhan/vim']
-else:
-    sys.path += [r'\\mathworks\home\savadhan\vim']
-
 try:
     from getProjSettings import getProjSettings
     from pathUtils import getRootDir
@@ -16,6 +11,7 @@ try:
     def addSandboxTags(fname):
         rootDir = getRootDir()
         soln = getProjSettings()
+        soln.setRootDir(rootDir)
         if not soln:
             return
 
@@ -44,7 +40,7 @@ let s:path = expand('<sfile>:p:h')
 " mw#tag#AddSandboxTags: add all tags for a given C/C++ file {{{
 function! mw#tag#AddSandboxTags(fname)
     let &l:tags = s:.path.'/cpp_std.tags'
-    exec 'python addSandboxTags("'.a:fname.'")'
+    exec 'python addSandboxTags(r"'.a:fname.'")'
 endfunction " }}}
 " mw#tag#InitVimTags:  {{{
 " Description: 
