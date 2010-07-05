@@ -24,9 +24,18 @@ com! -nargs=0 FastFile call mw#open#OpenFile()
 augroup ChangeFilePermsBeforeWriting
     au!
     au BufWritePre * 
-        \ :if filereadable(expand('<afile>')) && !filewritable(expand('<afile>')) && has('python')
-        \ | exec 'py import os, stat, vim'
-        \ | exec 'py os.chmod(vim.current.buffer.name, 0755)'
+        \ : if filereadable(expand('<afile>')) && !filewritable(expand('<afile>')) && has('python')
+        \ |     exec 'py import os, stat, vim'
+        \ |     exec 'py os.chmod(vim.current.buffer.name, 0755)'
+        \ | endif
+augroup END
+
+" Update tags in background after every write for the current project.
+augroup MWRefreshProjectTags
+    au!
+    au BufWritePost * 
+        \ : if has('unix') == 1 
+        \ |     exec 'silent! !genVimTags.py '.expand('%:p:h').' > /dev/null &'
         \ | endif
 augroup END
 
@@ -34,6 +43,7 @@ augroup END
 augroup filetype
         au BufNewFile,BufRead *.tlc                     setf tlc
         au BufNewFile,BufRead *.rtw                     setf rtw
+        au BufNewFile,BufRead *.cdr                     setf matlab
 augroup END
 
 if !has('gui_running')
