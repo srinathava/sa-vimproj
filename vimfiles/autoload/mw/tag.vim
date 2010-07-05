@@ -6,14 +6,18 @@ from os import path
 
 try:
     from getProjSettings import getProjSettings
-    from pathUtils import getRootDir
+    from sbtools import getRootDir
 
     def addSandboxTags(fname):
         rootDir = getRootDir()
+        if not rootDir:
+            return
+
         soln = getProjSettings()
-        soln.setRootDir(rootDir)
         if not soln:
             return
+
+        soln.setRootDir(rootDir)
 
         for proj in soln.projects:
             if proj.includesFile(fname):

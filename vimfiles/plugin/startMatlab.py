@@ -4,7 +4,13 @@ import commands, re, time
 import subprocess
 import sys
 
-def startMatlabLocal(useXterm, extraArgs):
+def startMatlab(extraArgs):
+    if ('-nojvm' in extraArgs) or ('-nodesktop' in extraArgs):
+        useXterm = True
+    else:
+        useXterm = False
+
+    extraArgs = extraArgs.split()
     if useXterm:
         pid = subprocess.Popen(['xterm', '-e', 'sb'] + extraArgs).pid
     else:
@@ -23,15 +29,7 @@ def startMatlabLocal(useXterm, extraArgs):
         if n == 10:
             return 0
 
-def startMatlab(mode):
-    if mode == '-nojvm':
-        return startMatlabLocal(1, ['-nodesktop', '-nojvm'])
-    elif mode == '-nodesktop':
-        return startMatlabLocal(1, ['-nodesktop'])
-    else:
-        return startMatlabLocal(0, [])
-
 if __name__ == "__main__":
-    pid = startMatlab(sys.argv[1])
+    pid = startMatlab(' '.join(sys.argv[1:]))
     print pid
 

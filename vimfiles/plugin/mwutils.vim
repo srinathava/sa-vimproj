@@ -15,6 +15,8 @@ command! -nargs=0 InitCppCompletion                 :call cpp_omni#Init()
 com! -nargs=1 -bang -complete=customlist,mw#sbtools#EditFileCompleteFunc
        \ EditFile call mw#sbtools#EditFileUsingLocate(<q-args>)
 
+com! -nargs=0 FastFile call mw#open#OpenFile()
+
 " At Mathworks, its usual practice to track modifications by figuring out
 " which files are write-able. Therefore, vim's behavior of retaining the
 " readonly-ness of files even after writing content to it hides changes we
@@ -48,12 +50,14 @@ amenu &Mathworks.Add\ &header\ protection       :AddHeaderProtection<CR>
 
 amenu &Mathworks.-sep2- <Nop>
 amenu &Mathworks.Initialize\ Vim\ &Tags         :call mw#tag#InitVimTags()<CR>
-amenu &Mathworks.&Find.In\ &Project             :call mw#sbtools#FindInProj()<CR>
-amenu &Mathworks.&Find.In\ &Solution            :call mw#sbtools#FindInSolution()<CR>
+nmenu &Mathworks.&Find.In\ &Project             :call mw#sbtools#FindInProj()<CR><C-R><C-W>
+nmenu &Mathworks.&Find.In\ &Solution            :call mw#sbtools#FindInSolution()<CR><C-R><C-W>
+nmenu &Mathworks.O&pen.In\ &Solution            :call mw#sbtools#FindInSolution()<CR><C-R><C-W>
 
 amenu &Mathworks.-sep3- <Nop>
 amenu &Mathworks.&Compile\ Current\ Project     :call mw#sbtools#CompileProject()<CR>
 amenu &Mathworks.C&ompile\ Current\ File        :call mw#sbtools#CompileFile()<CR>
+amenu &Mathworks.&Set\ Compile\ Level           :call mw#sbtools#SetCompileLevel()<CR>
 
 amenu &Mathworks.-sep4- <Nop>
 amenu &Mathworks.&Save\ Current\ Session        :call mw#sbtools#SaveSession()<CR>

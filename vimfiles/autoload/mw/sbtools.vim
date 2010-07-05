@@ -8,15 +8,25 @@ function! PrintDebug(...)
 endfunction
 endif
 
+command! -nargs=1 ReturnWithError 
+    \ echohl ErrorMsg |
+    \ echomsg <args> |
+    \ echohl None |
+    \ return
+
 " mw#sbtools#DiffWithOther: diffs with file in another sandbox {{{
 function! mw#sbtools#DiffWithOther(otherDir)
     let otherDir = mw#utils#NormalizeSandbox(a:otherDir)
-	let otherFileName = mw#utils#GetOtherFileName(otherDir)
-    call mw#utils#AssertError(otherFileName != '',  'No equivalent file found in other sandbox')
+    let otherFileName = mw#utils#GetOtherFileName(otherDir)
+    if otherFileName == ''
+        ReturnWithError "No equivalent file found in other sandbox"
+    endif
 
     " make this the only window.
     wincmd o
-    call mw#utils#AssertError(winnr('$') == 1, 'Could not close all other open windows')
+    if winnr('$') != 1
+        ReturnWithError 'Could not close all other open windows'
+    endif
 
     call mw#utils#SaveSettings(['diff', 'foldcolumn', 'foldenable', 'scrollbind', 'wrap'])
 	exec 'rightb vert diffsplit '.otherFileName
@@ -25,7 +35,7 @@ endfunction " }}}
 " mw#sbtools#SplitWithOther: opens equivalent file in other sandbox {{{
 function! mw#sbtools#SplitWithOther(otherDir)
     let otherDir = mw#utils#NormalizeSandbox(a:otherDir)
-	let otherFileName = mw#utils#GetOtherFileName(otherDir)
+    let otherFileName = mw#utils#GetOtherFileName(otherDir)
     call mw#utils#AssertError(otherFileName != '',  'No equivalent file found in other sandbox')
     exec 'rightb vert split '.otherFileName
 endfunction " }}}
@@ -54,26 +64,26 @@ endfunction " }}}
 " Description: 
 function! mw#sbtools#DiffSubmitFile(sb1, ...)
     let sb2 = mw#utils#GetRootDir()
-    call mw#utils#AssertError(sb2 != '', 'The present file doesn''t lie in a sandbox.')
+    if sb2 == ''
+        ReturnWithError "The present file does not belong to a sandbox"
+    endif
 
     let sb1 = mw#utils#NormalizeSandbox(a:sb1)
     if sb1 == ''
-        echohl WarningMsg
-        echomsg "Cannot find sandbox ".a:sb1
-        echohl None
-        return
+        ReturnWithError "Cannot find sandbox ".a:sb1
     end
 
     if a:0 > 0
         let submitFile = a:1
     else
         if !filereadable(sb2.'/submitList')
-            call mw#utils#AssertError(0, 'There is no submit file in the root of the current sandbox.')
+            ReturnWithError "Did not find a file called submitList at the root of the current sandbox ".sb2
         endif
         let submitFile = matchstr(readfile(sb2.'/submitList'), '\S\+')
     endif
+    let submitFile = resolve(fnamemodify(submitFile, ':p'))
     if !filereadable(submitFile)
-        call mw#utils#AssertError(0, submitFile.' is not readable')
+        ReturnWithError "File ".submitFile." is not readable."
     endif
 
     let g:DirDiffCmd = 'diffsubmitfile.py'
@@ -157,7 +167,7 @@ function! mw#sbtools#EditFileCompleteFunc(A,L,P)
 
     if alreadyFiltered == 0
         call filter(files, 'v:val !~ "CVS"')
-        call filter(files, 'v:val =~ "\\(cpp\\|hpp\\|m\\)$"')
+        call filter(files, 'v:val =~ "\\(cpp\\|hpp\\|\\|c\\|h\\|m\\|cdr\\)$"')
         " call filter(files, 'v:val =~ "matlab/\\(src/\\(cg_ir\\|rtwcg\\|simulink\\)\\|toolbox/stateflow\\|test/tools/sfeml\\)"')
         call filter(files, 'v:val =~ "/'.a:A.'[^/]*$"')
         call map(files, 'matchstr(v:val, "'.a:A.'[^/]*$")') 
@@ -185,11 +195,20 @@ endfun
 " ==============================================================================
 " Compiling projects
 " ============================================================================== 
+" mw#sbtools#SetCompileLevel:  {{{
+" Description: 
+
+if !exists('g:MWCompileLevel')
+    let g:MWCompileLevel = 1
+endif
+function! mw#sbtools#SetCompileLevel()
+    let g:MWCompileLevel = inputlist(['Select compiler level:', '1. Mixed compile', '2. Compile in DEBUG at SUPER-STRICT level', '3. Compile in RELEASE at SUPER-STRICT level', '4. Lint in RELEASE mode'])
+endfunction " }}}
 " s:SetMakePrg: sets the 'makeprg' option for the current buffer {{{
 
 let g:MWDebug = 1
 function! s:SetMakePrg()
-    let &l:makeprg = 'vim_make NORUNTESTS=1'
+    let &l:makeprg = '~distcc/client_env/dmake NORUNTESTS=1'
     if g:MWDebug == 1
         let &l:makeprg .= ' DEBUG=1'
     endif
@@ -231,7 +250,18 @@ function! mw#sbtools#CompileFile()
 
     exec 'cd '.expand('%:p:h')
     let oldMakePrg = &l:makeprg
-    let &l:makeprg = "sbcc -skip 'lint RELEASE something' ".expand('%:p')
+
+    let &l:makeprg = "sbcc"
+    if g:MWCompileLevel < 4
+        let &l:makeprg .= " -skip 'lint RELEASE noreason'"
+    endif
+    if g:MWCompileLevel < 3
+        let &l:makeprg .= " -skip 'compile RELEASE noreason'"
+    end
+    if g:MWCompileLevel < 2
+        let &l:makeprg .= " -skip 'compile DEBUG noreason'"
+    end
+    let &l:makeprg .= ' '.expand('%:p')
     make! 
     let &l:makeprg = oldMakePrg
     cwindow

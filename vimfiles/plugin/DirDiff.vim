@@ -721,6 +721,15 @@ function! <SID>Copy(fileFrom, fileTo)
     if (isdirectory(fileFrom))
         let error = <SID>DirDiffExec(copydircmd, g:DirDiffInteractive)
     else
+        " Create the destination directory if it doesn't exist.
+        let basedir = fnamemodify(fileTo, ":p:h")
+        if !isdirectory(basedir)
+            let error = <SID>DirDiffExec("!mkdir -p ".basedir, 0)
+            if error != 0
+                echo "Cannot create destination directory ".basedir." for file"
+                return 1
+            endif
+        end
         let error = <SID>DirDiffExec(copycmd, g:DirDiffInteractive)
     endif
     if (error != 0)
