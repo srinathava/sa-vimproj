@@ -124,26 +124,54 @@ endfunction " }}}
 " ============================================================================== 
 " mw#sbtools#FindIn:  {{{
 " Description: 
-function! mw#sbtools#FindIn(prog)
-    let input = input('Enter grep options and pattern: ')
+function! mw#sbtools#FindIn(prog, dir, name)
+    let rootDir = mw#utils#GetRootDir()
+    if rootDir == ''
+        echohl Search
+        echomsg "Not in a sandbox directory"
+        echohl None
+        return
+    endif
+
+    let input = input('Enter grep options and pattern ('.a:name.'): ')
     if input == ''
         return
     endif
 
-    exec 'cd '.expand('%:p:h')
+    let origDir = getcwd()
     let orig_grepprg = &grepprg
+
+    exec 'cd '.a:dir
     let &grepprg = a:prog.' $*'
     exec 'silent! grep! '.input
+
     let &grepprg = orig_grepprg
+    exec 'cd '.origDir
+
     cwindow
 endfunction " }}}
 " mw#sbtools#FindInProj: finds pattern in project {{{
 function! mw#sbtools#FindInProj()
-    call mw#sbtools#FindIn('findInProj.py')
+    call mw#sbtools#FindIn('findInProj.py', expand('%:p:h'), 'grep project')
 endfunction " }}}
 " mw#sbtools#FindInSolution: finds pattern in project {{{
 function! mw#sbtools#FindInSolution()
-    call mw#sbtools#FindIn('findInSoln.py')
+    call mw#sbtools#FindIn('findInSoln.py', expand('%:p:h'), 'grep solution')
+endfunction " }}}
+" mw#sbtools#FindUsingSbid: find using sbglobal {{{
+" Description: 
+function! mw#sbtools#FindUsingSbid()
+    call mw#sbtools#FindIn('sbid gid', mw#utils#GetRootDir(), 'sbid')
+endfunction " }}}
+" mw#sbtools#FindUsingSbglobal: find using sbglobal {{{
+" Description: 
+function! mw#sbtools#FindUsingSbglobal()
+    call mw#sbtools#FindIn('sbglobal -grep-format -x', mw#utils#GetRootDir(), 'sbglobal')
+endfunction " }}}
+" mw#sbtools#FindUsingSourceCodeSearch: find using source code search {{{
+" Description: 
+function! mw#sbtools#FindUsingSourceCodeSearch()
+    call mw#sbtools#FindIn('findUsingSCSTool.py', mw#utils#GetRootDir(), 'source code search')
 endfunction " }}}
 
 " ==============================================================================

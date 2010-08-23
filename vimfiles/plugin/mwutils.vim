@@ -35,7 +35,7 @@ augroup MWRefreshProjectTags
     au!
     au BufWritePost * 
         \ : if has('unix') == 1 
-        \ |     exec 'silent! !genVimTags.py '.expand('%:p:h').' > /dev/null &'
+        \ |     exec 'silent! !genVimTags.py '.expand('%:p:h').' &> /dev/null &'
         \ | endif
 augroup END
 
@@ -59,10 +59,12 @@ amenu &Mathworks.-sep1- <Nop>
 amenu &Mathworks.Add\ &header\ protection       :AddHeaderProtection<CR>
 
 amenu &Mathworks.-sep2- <Nop>
-amenu &Mathworks.Initialize\ Vim\ &Tags         :call mw#tag#InitVimTags()<CR>
-nmenu &Mathworks.&Find.In\ &Project             :call mw#sbtools#FindInProj()<CR><C-R><C-W>
-nmenu &Mathworks.&Find.In\ &Solution            :call mw#sbtools#FindInSolution()<CR><C-R><C-W>
-nmenu &Mathworks.O&pen.In\ &Solution            :call mw#sbtools#FindInSolution()<CR><C-R><C-W>
+amenu &Mathworks.Initialize\ Vim\ &Tags             :call mw#tag#InitVimTags()<CR>
+nmenu &Mathworks.&Find.In\ &Project                 :call mw#sbtools#FindInProj()<CR><C-R><C-W>
+nmenu &Mathworks.&Find.In\ &Solution                :call mw#sbtools#FindInSolution()<CR><C-R><C-W>
+nmenu &Mathworks.&Find.Using\ sb&id                 :call mw#sbtools#FindUsingSbid()<CR><C-R><C-W>
+nmenu &Mathworks.&Find.Using\ sb&global             :call mw#sbtools#FindUsingSbglobal()<CR><C-R><C-W>
+nmenu &Mathworks.&Find.Using\ &code\ search\ tool   :call mw#sbtools#FindUsingSourceCodeSearch()<CR><C-R><C-W>
 
 amenu &Mathworks.-sep3- <Nop>
 amenu &Mathworks.&Compile\ Current\ Project     :call mw#sbtools#CompileProject()<CR>

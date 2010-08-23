@@ -5,6 +5,7 @@ function! s:FilterList()
     let curpos = getpos('.')
 
     let pattern = substitute(getline(1), 'Enter pattern: ', '', 'g')
+
     if stridx(pattern, s:pattern, 0) == -1
         " This is a completely new pattern, so we need to start afresh
         silent! 2,$ d_
@@ -12,10 +13,10 @@ function! s:FilterList()
     end
     let s:pattern = pattern
 
-    let words = split(pattern, ' ')
-    for word in words
-        exec 'silent! 2,$ v/'.word.'/d_'
-    endfor
+    let pattern = substitute(pattern, ' ', '.*', 'g')
+    let pattern = substitute(pattern, '/', '\/', 'g')
+
+    exec 'silent! 2,$ v/'.pattern.'/d_'
 
     if search('^>', 'n') == 0
         call setline(2, substitute(getline(2), '^\s', '>', ''))
@@ -123,7 +124,6 @@ function! mw#open#OpenFile()
     call setbufvar(bufnum, '&buflisted', 0)
     call setbufvar(bufnum, '&buftype', 'nofile')
     call setbufvar(bufnum, '&ts', 8)
-    call setbufvar(bufnum, '&ww', '')
 
     let filelist = system('listFiles.py')
     silent! 0put=filelist
