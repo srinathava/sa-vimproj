@@ -50,9 +50,9 @@ if !has('gui_running')
     finish
 endif
 
-amenu &Mathworks.&Diff.With\ &perfect                               :DWithOther archive<CR>
-amenu &Mathworks.&Diff.With\ &sandbox                               :DWithOther<space> 
-amenu &Mathworks.&Diff.Using\ submit\ &file                         :DiffSubmitFile archive<CR>
+amenu &Mathworks.D&iff.With\ &perfect                               :DWithOther archive<CR>
+amenu &Mathworks.D&iff.With\ &sandbox                               :DWithOther<space> 
+amenu &Mathworks.D&iff.Using\ submit\ &file                         :DiffSubmitFile archive<CR>
 amenu &Mathworks.&Add\ current\ file\ to\ submit\ list              :!add.py %:p<CR>
 
 amenu &Mathworks.-sep1- <Nop>
