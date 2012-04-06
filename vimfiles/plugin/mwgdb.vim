@@ -1,3 +1,6 @@
+if !has('python')
+    finish
+endif
 " MW_StartMatlab:  {{{
 " Description: 
 
@@ -33,13 +36,13 @@ function! MW_StartMatlab(attach, mode)
 
     " set a bunch of standard breakpoints
     call gdb#gdb#SetQueryAnswer('y')
-    call gdb#gdb#RunCommand('b client_assertion_failed')
-    call gdb#gdb#RunCommand('b assertion_failed')
-    call gdb#gdb#RunCommand('b ThrowAssertion')
+    call gdb#gdb#RunCommand('bex')
     call gdb#gdb#SetQueryAnswer('')
 
     call gdb#gdb#Continue()
 endfunction " }}}
+
+command! MWDebug :call MW_StartMatlab(1, <f-args>)
 
 amenu &Mathworks.&Debug.&1\ MATLAB\ -nojvm      :call MW_StartMatlab(1, '-nojvm')<CR>
 amenu &Mathworks.&Debug.&2\ MATLAB\ -nodesktop  :call MW_StartMatlab(1, '-nodesktop')<CR>

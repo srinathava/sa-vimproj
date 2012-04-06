@@ -1,4 +1,5 @@
 " def addSandboxTags {{{
+if has('python')
 python <<EOF
 import sys
 import os
@@ -38,17 +39,24 @@ except ImportError:
 
     pass
 EOF
+endif
 " }}}
 
 let s:path = expand('<sfile>:p:h')
 " mw#tag#AddSandboxTags: add all tags for a given C/C++ file {{{
 function! mw#tag#AddSandboxTags(fname)
+    if !has('python')
+        return
+    endif
     let &l:tags = s:.path.'/cpp_std.tags'
     exec 'python addSandboxTags(r"'.a:fname.'")'
 endfunction " }}}
 " mw#tag#InitVimTags:  {{{
 " Description: 
 function! mw#tag#InitVimTags()
+    if !has('python')
+        return
+    endif
     !genVimTags.py
     call mw#tag#AddSandboxTags(expand('%:p'))
 endfunction " }}}

@@ -46,6 +46,10 @@ augroup filetype
         au BufNewFile,BufRead *.cdr                     setf matlab
 augroup END
 
+if !hasmapto('mw#open#OpenFile')
+    map <F4> :call mw#open#OpenFile()<CR>
+endif
+
 if !has('gui_running')
     finish
 endif
@@ -60,16 +64,18 @@ amenu &Mathworks.Add\ &header\ protection       :AddHeaderProtection<CR>
 
 amenu &Mathworks.-sep2- <Nop>
 amenu &Mathworks.Initialize\ Vim\ &Tags             :call mw#tag#InitVimTags()<CR>
-nmenu &Mathworks.&Find.In\ &Project                 :call mw#sbtools#FindInProj()<CR><C-R><C-W>
-nmenu &Mathworks.&Find.In\ &Solution                :call mw#sbtools#FindInSolution()<CR><C-R><C-W>
-nmenu &Mathworks.&Find.Using\ sb&id                 :call mw#sbtools#FindUsingSbid()<CR><C-R><C-W>
-nmenu &Mathworks.&Find.Using\ sb&global             :call mw#sbtools#FindUsingSbglobal()<CR><C-R><C-W>
-nmenu &Mathworks.&Find.Using\ &code\ search\ tool   :call mw#sbtools#FindUsingSourceCodeSearch()<CR><C-R><C-W>
+nmenu &Mathworks.&Find.In\ &Project                 :call mw#sbtools#FindInProj()<CR><C-R>=expand('<cword>')<CR>
+nmenu &Mathworks.&Find.In\ &Solution                :call mw#sbtools#FindInSolution()<CR><C-R>=expand('<cword>')<CR>
+nmenu &Mathworks.&Find.Using\ sb&id                 :call mw#sbtools#FindUsingSbid()<CR><C-R>=expand('<cword>')<CR>
+nmenu &Mathworks.&Find.Using\ sb&global             :call mw#sbtools#FindUsingSbglobal()<CR><C-R>=expand('<cword>')<CR>
+nmenu &Mathworks.&Find.Using\ &code\ search\ tool   :call mw#sbtools#FindUsingSourceCodeSearch()<CR><C-R>=expand('<cword>')<CR>
+nmenu &Mathworks.O&pen\ file\ in\ project           :call mw#open#OpenFile()<CR>
 
 amenu &Mathworks.-sep3- <Nop>
 amenu &Mathworks.&Compile\ Current\ Project     :call mw#sbtools#CompileProject()<CR>
 amenu &Mathworks.C&ompile\ Current\ File        :call mw#sbtools#CompileFile()<CR>
 amenu &Mathworks.&Set\ Compile\ Level           :call mw#sbtools#SetCompileLevel()<CR>
+amenu &Mathworks.DAS\ B&uild                    :call mw#sbtools#BuildUsingDas()<CR>
 
 amenu &Mathworks.-sep4- <Nop>
 amenu &Mathworks.&Save\ Current\ Session        :call mw#sbtools#SaveSession()<CR>

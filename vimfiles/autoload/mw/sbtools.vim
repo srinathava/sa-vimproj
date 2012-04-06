@@ -211,12 +211,19 @@ endfun
 " mw#sbtools#EditFileUsingLocate {{{
 function! mw#sbtools#EditFileUsingLocate(file)
     let files = split(system('sblocate '.a:file), "\n")
-    for f in files
-        if filereadable(f) && f =~ a:file.'$'
-            exec 'drop '.f
-            return
-        endif
+    if len(files) == 1
+        exec 'drop '.files[0]
+        return
+    end
+    let promptList = ['Multiple files found. Please select one: ']
+    for idx in range(len(files))
+        call add(promptList, idx.'. '.files[idx])
     endfor
+    let choice = inputlist(promptList)
+    if choice < 0
+        return
+    endif
+    exec 'drop '.files[choice]
 endfun
 " }}}
 
@@ -236,7 +243,7 @@ endfunction " }}}
 
 let g:MWDebug = 1
 function! s:SetMakePrg()
-    let &l:makeprg = '~distcc/client_env/dmake NORUNTESTS=1'
+    let &l:makeprg = 'sbmake -distcc NORUNTESTS=1'
     if g:MWDebug == 1
         let &l:makeprg .= ' DEBUG=1'
     endif
@@ -296,5 +303,40 @@ function! mw#sbtools#CompileFile()
     
     exec 'cd '.olddir
 endfunction " }}}
+" mw#sbtools#BuildUsingDas:  {{{
+function! mw#sbtools#BuildUsingDas()
+    let logFile = '/tmp/_DAS_OUTPUT_'.$USER
+    exec 'silent! bdelete! '.logFile
+    exec 'bot spl '.logFile
+    %d_
+    set nomodified
+
+    redraw!
+    let cmd = input('Enter das command: ', 'das build -t cg_ir -i 0')
+    let output = system(cmd)
+    0put=output
+
+    if search(': error:') == 0
+        q!
+        return
+    endif
+
+    nmap <buffer> <CR> :call mw#sbtools#TakeMeThere()<CR>
+
+    w
+endfunction " }}}
+" mw#sbtools#TakeMeThere {{{
+function! mw#sbtools#TakeMeThere()
+    let matches = matchlist(getline('.'), '\(\f\+\):\(\d\+\).*')
+    if len(matches) == 0
+        return
+    endif
+    let fname = matches[1]
+    let lnum = matches[2]
+    let fullfilename = system('sblocate '.fname)
+    exec 'split '.fullfilename
+    exec lnum
+endfunction
+" }}}
 
 " vim: fdm=marker
