@@ -237,17 +237,30 @@ if !exists('g:MWCompileLevel')
     let g:MWCompileLevel = 1
 endif
 function! mw#sbtools#SetCompileLevel()
-    let g:MWCompileLevel = inputlist(['Select compiler level:', '1. Mixed compile', '2. Compile in DEBUG at SUPER-STRICT level', '3. Compile in RELEASE at SUPER-STRICT level', '4. Lint in RELEASE mode'])
+    let g:MWCompileLevel = inputlist(['Select compiler level:', '1. Mixed compile', '2. Compile in DEBUG at SUPER-STRICT level', '3. Compile in RELEASE at SUPER-STRICT level', '4. Unit-testing mode', '5. Lint in RELEASE mode', '6. Lint only mode'])
 endfunction " }}}
 " s:SetMakePrg: sets the 'makeprg' option for the current buffer {{{
 
 let g:MWDebug = 1
 function! s:SetMakePrg()
-    let &l:makeprg = 'sbmake -distcc NORUNTESTS=1'
+    let &l:makeprg = 'sbmake -distcc'
+    if g:MWCompileLevel != 4
+        let &l:makeprg .= ' NORUNTESTS=1'
+    endif
     if g:MWDebug == 1
         let &l:makeprg .= ' DEBUG=1'
     endif
 endfunction " }}}
+" mw#sbtools#GetCurrentProjDir {{{
+function! mw#sbtools#GetCurrentProjDir()
+    let olddir = getcwd()
+    let filePath = expand('%:p:h')
+
+    let modDepFilePath = findfile('MODULE_DEPENDENCIES', filePath.';')
+    let projDir = fnamemodify(modDepFilePath, ':p:h')
+    return projDir
+endfunction
+" }}}
 " mw#sbtools#CompileProject: compiles the present flag {{{
 function! mw#sbtools#CompileProject()
     let olddir = getcwd()
@@ -296,6 +309,10 @@ function! mw#sbtools#CompileFile()
     if g:MWCompileLevel < 2
         let &l:makeprg .= " -skip 'compile DEBUG noreason'"
     end
+    if g:MWCompileLevel == 6
+        let &l:makeprg = 'sbcc -l'
+    endif
+
     let &l:makeprg .= ' '.expand('%:p')
     make! 
     let &l:makeprg = oldMakePrg

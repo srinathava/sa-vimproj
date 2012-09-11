@@ -42,11 +42,37 @@ function! MW_StartMatlab(attach, mode)
     call gdb#gdb#Continue()
 endfunction " }}}
 
+
+" MW_StartMatlab:  {{{
+" Description: run the C++ unit tests for the current modules
+function! MW_DebugUnitTests(whichTest)
+    call gdb#gdb#Init()
+
+    let projDir = mw#sbtools#GetCurrentProjDir()
+    if projDir == ''
+        echohl Error
+        echomsg "Could not find a project directory for current file"
+        echohl None
+        return
+    end
+
+    " This is the directory where 'battree' is found
+    let mlroot = mw#utils#GetRootDir().'/matlab'
+
+    let relPath = strpart(projDir, len(mlroot))
+
+    let testBinDir = mlroot.'/derived/glnxa64/testbin/'.relPath
+    let testPath = testBinDir.'/'.a:whichTest
+    call gdb#gdb#RunCommand("file ".testPath)
+endfunction " }}}
+
 command! MWDebug :call MW_StartMatlab(1, <f-args>)
 
 amenu &Mathworks.&Debug.&1\ MATLAB\ -nojvm      :call MW_StartMatlab(1, '-nojvm')<CR>
 amenu &Mathworks.&Debug.&2\ MATLAB\ -nodesktop  :call MW_StartMatlab(1, '-nodesktop')<CR>
 amenu &Mathworks.&Debug.&3\ MATLAB\ desktop     :call MW_StartMatlab(1, '-desktop')<CR>
+amenu &Mathworks.&Debug.&4\ unittest     :call MW_DebugUnitTests('unittest')<CR>
+amenu &Mathworks.&Debug.&5\ pkgtest      :call MW_DebugUnitTests('pkgtest')<CR>
 
 amenu &Mathworks.&Run.&1\ MATLAB\ -nojvm        :call MW_StartMatlab(0, '-nojvm')<CR>
 amenu &Mathworks.&Run.&2\ MATLAB\ -nodesktop    :call MW_StartMatlab(0, '-nodesktop')<CR>

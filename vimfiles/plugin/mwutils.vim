@@ -10,7 +10,7 @@ command! -nargs=+ -complete=dir DiffSandbox2        :call mw#sbtools#DiffWriteab
 command! -nargs=* -complete=file DiffSubmitFile     :call mw#sbtools#DiffSubmitFile(<f-args>)
 command! -nargs=0 -range AddHeaderProtection        :call mw#addHeaderProtection#DoIt()
 
-command! -nargs=0 InitCppCompletion                 :call cpp_omni#Init()
+"command! -nargs=0 InitCppCompletion                 :call cpp_omni#Init()
 
 com! -nargs=1 -bang -complete=customlist,mw#sbtools#EditFileCompleteFunc
        \ EditFile call mw#sbtools#EditFileUsingLocate(<q-args>)
@@ -78,7 +78,7 @@ amenu &Mathworks.&Set\ Compile\ Level           :call mw#sbtools#SetCompileLevel
 amenu &Mathworks.DAS\ B&uild                    :call mw#sbtools#BuildUsingDas()<CR>
 
 amenu &Mathworks.-sep4- <Nop>
-amenu &Mathworks.&Save\ Current\ Session        :call mw#sbtools#SaveSession()<CR>
+amenu &Mathworks.Sa&ve\ Current\ Session        :call mw#sbtools#SaveSession()<CR>
 amenu &Mathworks.&Load\ Saved\ Session          :call mw#sbtools#LoadSession()<CR>
 
 " vim: fdm=marker

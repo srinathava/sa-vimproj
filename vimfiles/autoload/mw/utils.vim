@@ -33,9 +33,9 @@ function! mw#utils#NormalizeSandbox(sb)
     end
     if sb == 'archive'
         let currentRoot = mw#utils#GetRootDir()
-        if filereadable(currentRoot.'/sbsync.log')
-            let log = readfile(currentRoot.'/sbsync.log')
-            let sb = matchstr(log[1], "Sync from '\\zs.*\\ze'")
+        if filereadable(currentRoot.'/.last_sunc')
+            let log = readfile(currentRoot.'/.last_sunc')
+            let sb = log[0]
             return sb
         else
             return ''
