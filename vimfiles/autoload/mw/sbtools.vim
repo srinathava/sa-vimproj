@@ -161,7 +161,7 @@ endfunction " }}}
 " mw#sbtools#FindUsingSbid: find using sbglobal {{{
 " Description: 
 function! mw#sbtools#FindUsingSbid()
-    call mw#sbtools#FindIn('sbid gid', mw#utils#GetRootDir(), 'sbid')
+    call mw#sbtools#FindIn('sbid gid -id-lang C,C++', mw#utils#GetRootDir(), 'sbid')
 endfunction " }}}
 " mw#sbtools#FindUsingSbglobal: find using sbglobal {{{
 " Description: 
@@ -237,14 +237,20 @@ if !exists('g:MWCompileLevel')
     let g:MWCompileLevel = 1
 endif
 function! mw#sbtools#SetCompileLevel()
-    let g:MWCompileLevel = inputlist(['Select compiler level:', '1. Mixed compile', '2. Compile in DEBUG at SUPER-STRICT level', '3. Compile in RELEASE at SUPER-STRICT level', '4. Lint in RELEASE mode'])
+    let g:MWCompileLevel = inputlist(['Select compiler level:', '1. Mixed compile', '2. Compile in DEBUG at SUPER-STRICT level', '3. Compile in RELEASE at SUPER-STRICT level', '4. Unit-testing mode', '5. Lint in RELEASE mode', '6. Lint only mode', '7. Coverage mode'])
 endfunction " }}}
 " s:SetMakePrg: sets the 'makeprg' option for the current buffer {{{
 
 let g:MWDebug = 1
 let g:MWDisableGcc47 = 1
 function! s:SetMakePrg()
-    let &l:makeprg = 'sbmake -distcc NORUNTESTS=1'
+    let &l:makeprg = 'sbmake -distcc DISABLE_OBJ_GCC47=1'
+    if g:MWCompileLevel == 7
+        let &l:makeprg = 'sbmake  BCOV=1 -j 9'
+    endif
+    if g:MWCompileLevel != 4
+        let &l:makeprg .= ' NORUNTESTS=1'
+    endif
     if g:MWDebug == 1
         let &l:makeprg .= ' DEBUG=1'
     endif
@@ -252,6 +258,16 @@ function! s:SetMakePrg()
         let &l:makeprg .= ' DISABLE_OBJ_GCC47=1'
     endif
 endfunction " }}}
+" mw#sbtools#GetCurrentProjDir {{{
+function! mw#sbtools#GetCurrentProjDir()
+    let olddir = getcwd()
+    let filePath = expand('%:p:h')
+
+    let modDepFilePath = findfile('MODULE_DEPENDENCIES', filePath.';')
+    let projDir = fnamemodify(modDepFilePath, ':p:h')
+    return projDir
+endfunction
+" }}}
 " mw#sbtools#CompileProject: compiles the present flag {{{
 function! mw#sbtools#CompileProject()
     let olddir = getcwd()
@@ -287,19 +303,34 @@ endfunction " }}}
 function! mw#sbtools#CompileFile()
     let olddir = getcwd()
 
+    let noLint    =  " -skip 'lint RELEASE noreason'"
+    let noRelease =  " -skip 'compile RELEASE noreason'"
+    let noDebug   =  " -skip 'compile DEBUG noreason'"
+
     exec 'cd '.expand('%:p:h')
     let oldMakePrg = &l:makeprg
 
     let &l:makeprg = "sbcc"
-    if g:MWCompileLevel < 4
-        let &l:makeprg .= " -skip 'lint RELEASE noreason'"
+    if g:MWCompileLevel == 1
+        let &l:makeprg .= noLint . noRelease . noDebug
     endif
-    if g:MWCompileLevel < 3
-        let &l:makeprg .= " -skip 'compile RELEASE noreason'"
+    if g:MWCompileLevel == 2
+        let &l:makeprg .= noLint . noRelease
     end
-    if g:MWCompileLevel < 2
-        let &l:makeprg .= " -skip 'compile DEBUG noreason'"
+    if g:MWCompileLevel == 3
+        let &l:makeprg .= noLint
     end
+    if g:MWCompileLevel == 4 || g:MWCompileLevel == 7
+        let &l:makeprg .= noLint . noRelease . noDebug
+        " run with unittests on
+    end
+    if g:MWCompileLevel == 5
+        " do nothing , just sbcc
+    end
+    if g:MWCompileLevel == 6
+        let &l:makeprg .= ' -l'
+    endif
+
     let &l:makeprg .= ' '.expand('%:p')
     make! 
     let &l:makeprg = oldMakePrg
