@@ -71,8 +71,8 @@ command! MWDebug :call MW_StartMatlab(1, <f-args>)
 amenu &Mathworks.&Debug.&1\ MATLAB\ -nojvm      :call MW_StartMatlab(1, '-nojvm')<CR>
 amenu &Mathworks.&Debug.&2\ MATLAB\ -nodesktop  :call MW_StartMatlab(1, '-nodesktop')<CR>
 amenu &Mathworks.&Debug.&3\ MATLAB\ desktop     :call MW_StartMatlab(1, '-desktop')<CR>
-amenu &Mathworks.&Debug.&4\ unittest     :call MW_DebugUnitTests('unittest')<CR>
-amenu &Mathworks.&Debug.&5\ pkgtest      :call MW_DebugUnitTests('pkgtest')<CR>
+amenu &Mathworks.&Debug.4\ &unittest            :call MW_DebugUnitTests('unittest')<CR>
+amenu &Mathworks.&Debug.5\ &pkgtest             :call MW_DebugUnitTests('pkgtest')<CR>
 
 amenu &Mathworks.&Run.&1\ MATLAB\ -nojvm        :call MW_StartMatlab(0, '-nojvm')<CR>
 amenu &Mathworks.&Run.&2\ MATLAB\ -nodesktop    :call MW_StartMatlab(0, '-nodesktop')<CR>
