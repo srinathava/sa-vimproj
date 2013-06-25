@@ -52,6 +52,7 @@ function! s:OpenSelection()
         let n = 2
     endif
     let f = substitute(getline(n), '^\(>\)\=\s*', '', '')
+    let f = b:textToAdd . f
     exec 'drop '.f
 endfunction " }}}
 " s:MapSingleKey:  {{{
@@ -118,6 +119,14 @@ endfunction " }}}
 " mw#open#OpenFile: opens a file in the solution {{{
 " Description: 
 function! mw#open#OpenFile()
+    let prefix = mw#utils#GetRootDir()
+    if prefix == ''
+        echohl Error
+        echomsg "You are not in a sandbox. Use :cd to go to a sandbox directory"
+        echohl None
+        return
+    endif
+
     drop _MW_Files_
     let bufnum = bufnr('%')
     call setbufvar(bufnum, '&swapfile', 0)
@@ -128,6 +137,9 @@ function! mw#open#OpenFile()
     let filelist = system('listFiles.py')
     silent! 0put=filelist
     silent! %s/^/    /g
+
+    exec 'silent! %s/'.escape(prefix, '/').'//'
+    let b:textToAdd = prefix
 
     call mw#open#StartFiltering()
 endfunction " }}}

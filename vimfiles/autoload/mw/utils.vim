@@ -3,6 +3,11 @@
 " ============================================================================== 
 " mw#utils#GetRootDir: gets the directory above this one where battree resides {{{
 function! mw#utils#GetRootDir()
+    let projpath = findfile('.vimproj.xml', '.;')
+    if projpath != ''
+        return fnamemodify(projpath, ':p:h')
+    end
+
     let battreePath = findfile('battree', '.;')
     if battreePath != ''
         return fnamemodify(battreePath, ':p:h')
@@ -32,14 +37,9 @@ function! mw#utils#NormalizeSandbox(sb)
         return sb
     end
     if sb == 'archive'
-        let currentRoot = mw#utils#GetRootDir()
-        if filereadable(currentRoot.'/sbsync.log')
-            let log = readfile(currentRoot.'/sbsync.log')
-            let sb = matchstr(log[1], "Sync from '\\zs.*\\ze'")
-            return sb
-        else
-            return ''
-        end
+        let output = system('sbver')
+        let archivedir = matchstr(output, 'SyncFrom: \zs\(\S\+\)\zePerfect')
+        return archivedir[0:(len(archivedir)-2)]
     else
         return ''
     endif

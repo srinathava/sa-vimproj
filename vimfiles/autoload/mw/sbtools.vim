@@ -242,10 +242,14 @@ endfunction " }}}
 " s:SetMakePrg: sets the 'makeprg' option for the current buffer {{{
 
 let g:MWDebug = 1
+let g:MWDisableGcc47 = 1
 function! s:SetMakePrg()
     let &l:makeprg = 'sbmake -distcc NORUNTESTS=1'
     if g:MWDebug == 1
         let &l:makeprg .= ' DEBUG=1'
+    endif
+    if g:MWDisableGcc47
+        let &l:makeprg .= ' DISABLE_OBJ_GCC47=1'
     endif
 endfunction " }}}
 " mw#sbtools#CompileProject: compiles the present flag {{{

@@ -12,9 +12,9 @@ def startMatlab(extraArgs):
 
     extraArgs = extraArgs.split()
     if useXterm:
-        pid = subprocess.Popen(['xterm', '-e', 'sb'] + extraArgs).pid
+        pid = subprocess.Popen(['xterm', '-e', 'sb', '-skip-job-archive-check'] + extraArgs).pid
     else:
-        pid = subprocess.Popen(['sb'] + extraArgs).pid
+        pid = subprocess.Popen(['sb', '-skip-job-archive-check'] + extraArgs).pid
 
     # wait for the correct MATLAB process to be loaded.
     n = 0
