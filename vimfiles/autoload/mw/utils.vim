@@ -44,6 +44,13 @@ function! mw#utils#NormalizeSandbox(sb)
         return ''
     endif
 endfunction " }}}
+" mw#utils#IsInSandbox: Is this file in a sandbox {{{
+function! mw#utils#IsInSandbox(fileName)
+    let bufferDir = fnamemodify(a:fileName, ':p:h')
+    let battreePath = findfile('battree', bufferDir . ';')
+    return battreePath != ""
+endfunction
+" }}}
 
 " ==============================================================================
 " General utility functions

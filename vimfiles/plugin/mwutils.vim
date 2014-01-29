@@ -30,6 +30,11 @@ augroup ChangeFilePermsBeforeWriting
         \ | endif
 augroup END
 
+augroup AddFilesToPerforce
+    au!
+    au BufWritePost * call mw#perforce#AddFileToPerforce(expand('<afile>:p'))
+augroup END
+
 " Update tags in background after every write for the current project.
 augroup MWRefreshProjectTags
     au!
