@@ -3,17 +3,17 @@
 " ============================================================================== 
 " mw#utils#GetRootDir: gets the directory above this one where battree resides {{{
 function! mw#utils#GetRootDir()
+    let battreePath = findfile('battree', '.;')
+    if battreePath != ''
+        return fnamemodify(battreePath, ':p:h')
+    endif
+
     let projpath = findfile('.vimproj.xml', '.;')
     if projpath != ''
         return fnamemodify(projpath, ':p:h')
     end
 
-    let battreePath = findfile('battree', '.;')
-    if battreePath != ''
-        return fnamemodify(battreePath, ':p:h')
-    else
-        return ''
-    endif
+    return ''
 endfunction " }}}
 " mw#utils#GetOtherFileName: gets equivalent file in other sandbox {{{
 function! mw#utils#GetOtherFileName(otherDir)

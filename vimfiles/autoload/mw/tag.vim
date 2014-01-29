@@ -31,7 +31,25 @@ try:
                     dep_proj = soln.getProjByName(dep)
                     for inc in dep_proj.exports:
                         vim.command("let &l:tags .= ',%s'" % path.join(rootDir, inc['path'], inc['tagsFile']))
-                    
+
+
+    def getTagFiles(fname):
+        rootDir = getRootDir()
+        if not rootDir:
+            return
+
+        soln = getProjSettings()
+        if not soln:
+            return
+
+        soln.setRootDir(rootDir)
+
+        for proj in soln.projects:
+            if proj.includesFile(fname):
+                for inc in proj.includes:
+                    tagsFileFullPath = path.join(rootDir, inc['path'], inc['tagsFile'])
+                    vim.command(r'''let tagsFile = "%s"''' % tagsFileFullPath)
+                    return
 
 except ImportError:
     def addSandboxTags(fname):
@@ -59,4 +77,21 @@ function! mw#tag#InitVimTags()
     endif
     !genVimTags.py
     call mw#tag#AddSandboxTags(expand('%:p'))
+endfunction " }}}
+" mw#tag#SelectTag: select a tag from this project {{{
+" Description: 
+function! mw#tag#SelectTag(fname)
+    if !has('python')
+        return
+    endif
+    exec 'python getTagFiles(r"'.a:fname.'")'
+    let output = system('selectTag.py '.tagsFile)
+    let [tagName, fileName, tagPattern] = split(output, "\n")
+
+    let tagsFilePath = fnamemodify(tagsFile, ':p:h')
+    let fileName = tagsFilePath . '/' . fileName
+
+    exec 'drop '.fileName
+    let tagPattern = escape(tagPattern, '*[]')
+    exec tagPattern
 endfunction " }}}

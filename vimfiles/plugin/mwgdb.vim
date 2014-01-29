@@ -1,6 +1,7 @@
 if !has('python')
     finish
 endif
+
 " MW_AttachToMatlab:  {{{
 " Description: 
 
@@ -51,12 +52,9 @@ function! MW_StartMatlab(attach, mode)
     endif
 endfunction " }}}
 
-
 " MW_DebugUnitTests:  {{{
 " Description: run the C++ unit tests for the current modules
-function! MW_DebugUnitTests(whichTest)
-    call gdb#gdb#Init()
-
+function! MW_DebugUnitTests()
     let projDir = mw#sbtools#GetCurrentProjDir()
     if projDir == ''
         echohl Error
@@ -65,27 +63,52 @@ function! MW_DebugUnitTests(whichTest)
         return
     end
 
+    let fileDirRelPathToProj = strpart(expand('%:p:h'), len(projDir) + 1)
+    let pkgTestName = substitute(fileDirRelPathToProj, '/', '_', 'g')
+
+    let sbrootDir = mw#utils#GetRootDir()
+
     " This is the directory where 'battree' is found
-    let mlroot = mw#utils#GetRootDir().'/matlab'
+    let mlroot = sbrootDir.'/matlab'
 
-    let relPath = strpart(projDir, len(mlroot))
+    let projRelPathToMlRoot = strpart(projDir, len(mlroot) + 1)
 
-    let testBinDir = mlroot.'/derived/glnxa64/testbin/'.relPath
-    let testPath = testBinDir.'/'.a:whichTest
+    let testBinDir = mlroot.'/derived/glnxa64/testbin/'.projRelPathToMlRoot
+    let testPath = testBinDir.'/'.pkgTestName
+
+    if !executable(testPath)
+        echohl Error
+        echomsg "Current file is not a unit/pkg test or the unit/pkg tests have not been built"
+        echohl None
+        return
+    end
+
+    call gdb#gdb#Init()
+
+    " This ensures that the debugger breaks in our local sandbox files and
+    " not in /devel/Aslrtw/build etc.
+    call gdb#gdb#RunCommand('source '.sbrootDir.'/.sbtools/.source-path-gdbinit')
+    
     call gdb#gdb#RunCommand("file ".testPath)
+
+    " :cd to the project directory in GDB so that we can resolve relative
+    " paths in the unit test executable.
+    call gdb#gdb#RunCommand("cd ".projDir)
+
+    " Read in all the breakpoints which have already been set.
+    call gdb#gdb#RedoAllBreakpoints()
 endfunction " }}}
 
 command! MWDebug :call MW_StartMatlab(1, <f-args>)
 
 amenu &Mathworks.&Debug.&1\ MATLAB\ -nojvm      :call MW_StartMatlab(1, '-nojvm')<CR>
-amenu &Mathworks.&Debug.&2\ MATLAB\ -nodesktop  :call MW_StartMatlab(1, '-nodesktop')<CR>
+amenu &Mathworks.&Debug.&2\ MATLAB\ -nodesktop  :call MW_StartMatlab(1, '-nodesktop -nosplash')<CR>
 amenu &Mathworks.&Debug.&3\ MATLAB\ desktop     :call MW_StartMatlab(1, '-desktop')<CR>
-amenu &Mathworks.&Debug.&4\ Attach\ to\ MATLAB  :call MW_AttachToMatlab('MATLAB', '-nojvm')<CR>
-amenu &Mathworks.&Debug.4\ &unittest            :call MW_DebugUnitTests('unittest')<CR>
-amenu &Mathworks.&Debug.5\ &pkgtest             :call MW_DebugUnitTests('pkgtest')<CR>
+amenu &Mathworks.&Debug.&Attach\ to\ MATLAB     :call MW_AttachToMatlab('MATLAB', '-nojvm')<CR>
+amenu &Mathworks.&Debug.&unit/pkgtest           :call MW_DebugUnitTests()<CR>
 
 amenu &Mathworks.&Run.&1\ MATLAB\ -nojvm        :call MW_StartMatlab(0, '-nojvm')<CR>
-amenu &Mathworks.&Run.&2\ MATLAB\ -nodesktop    :call MW_StartMatlab(0, '-nodesktop')<CR>
+amenu &Mathworks.&Run.&2\ MATLAB\ -nodesktop    :call MW_StartMatlab(0, '-nodesktop -nosplash')<CR>
 amenu &Mathworks.&Run.&3\ MATLAB\ desktop       :call MW_StartMatlab(0, '-desktop')<CR>
 amenu &Mathworks.&Run.&4\ MATLAB\ -check_malloc :call MW_StartMatlab(0, '-check_malloc')<CR>
 

@@ -16,13 +16,24 @@ let &efm .= ',%-G%.%#Running\ build%.%#'
 let &efm .= ',%-G%.%#is\ obsolete%.%#'
 let &efm .= ',%-G%.%#include\ path\ is\ out-of-model%.%#'
 let &efm .= ',%-G%.%#compflags\.gnu%.%#'
+let &efm .= ',%-GSBT%.%#'
+let &efm .= ',%-GCompiling\ %.%#'
+let &efm .= ',%-GThe\ makefile\ %.%#'
+let &efm .= ',%-GPlease\ specify\ %.%#'
+let &efm .= ',%-GUsing\ default\ %.%#'
+let &efm .= ',%-GModule\ entry\ %.%#'
+let &efm .= ',%-GBuild\ type\ %.%#'
+let &efm .= ',%-GWarning\ level\ %.%#'
+let &efm .= ',%-Gdistcc[%.%#'
 let &efm .= ',%-W%.%#compflags\.gnu%.%#'
-
+let &efm .= ',%.%#from\ %f:%l:%c,'
+let &efm .= ',%f:\ In\ function\ %.%#=%m'
 let &efm .= ',%*[^"]"%f"%*\D%l: %m'
 let &efm .= ',"%f"%*\D%l: %m'
 let &efm .= ',%-G%f:%l: (Each undeclared identifier is reported only once'
 let &efm .= ',%-G%f:%l: for each function it appears in.)'
 let &efm .= ',%f:%l:%c:%m'
+let &efm .= ',%f:%l'
 let &efm .= ',%f(%l):%m,%f:%l:%m,"%f"\, line %l%*\D%c%*[^ ] %m'
 let &efm .= ',%-D%*\a[%*\d]: Entering directory `%f'."'"
 let &efm .= ',%-D%*\a: Entering directory `%f'."'"
@@ -34,5 +45,5 @@ let &efm .= ',%-G%*\a[%*\d]: Leaving directory `%f'."'"
 let &efm .= ',%-G%*\a: Leaving directory `%f'."'"
 let &efm .= ',%-DMaking %*\a in %f'
 let &efm .= ',%f|%l| %m '
-let &efm .= ',%-G%.%#'
+" let &efm .= ',%-G%.%#'
 

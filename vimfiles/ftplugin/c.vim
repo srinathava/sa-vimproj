@@ -1,10 +1,3 @@
-if exists('b:did_mw_c_ftplugin')
-    finish
-endif
-let b:did_mw_c_ftplugin = 1
-
-call mw#tag#AddSandboxTags(expand('%:p'))
-
 setlocal cinoptions=:0,g2,h2,(0,:2,=2,l1,W4
 
 " We first remove the double slash and add it after the triple slash,
@@ -20,6 +13,13 @@ let b:tag_if = "if (<++>) {\<CR><++>\<CR>}"
 let b:tag_for = "for (<++>; <++>; <++>) {\<CR><++>\<CR>}"
 let b:tag_else = "else {\<CR><++>\<CR>}"
 imap <silent> <buffer> <C-e> <C-r>=C_CompleteWord()<CR>
+
+if exists('b:did_mw_c_ftplugin')
+    finish
+endif
+let b:did_mw_c_ftplugin = 1
+
+call mw#tag#AddSandboxTags(expand('%:p'))
 
 if exists('*ToggleSrcHeader')
     finish

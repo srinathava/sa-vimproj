@@ -244,12 +244,12 @@ endfunction " }}}
 let g:MWDebug = 1
 let g:MWDisableGcc47 = 1
 function! s:SetMakePrg()
-    let &l:makeprg = 'sbmake -distcc DISABLE_OBJ_GCC47=1'
+    let &l:makeprg = 'sbmake -distcc'
     if g:MWCompileLevel == 7
         let &l:makeprg = 'sbmake  BCOV=1 -j 9'
     endif
     if g:MWCompileLevel != 4
-        let &l:makeprg .= ' NORUNTESTS=1'
+        let &l:makeprg .= ' NOBUILDTESTS=1 NORUNTESTS=1'
     endif
     if g:MWDebug == 1
         let &l:makeprg .= ' DEBUG=1'
