@@ -8,6 +8,10 @@ if exists('*s:SetLocalSettings')
     finish
 end
 
+if !exists('g:FoldMatlab')
+    let g:FoldMatlab = 1
+end
+
 " s:SetLocalSettings: set local settings {{{
 " Description: 
 function! s:SetLocalSettings()
@@ -21,7 +25,7 @@ function! s:SetLocalSettings()
         \ . ',%WL %l (C %c-%v): %m'
         \ . ',%WL %l (C %c): %m'
 
-    if line('$') < 1000
+    if line('$') < 1000 && g:FoldMatlab
         call FoldMatlab()
     endif
     setlocal foldtext=MatlabFoldTextFcn(v:foldstart,v:foldlevel)
