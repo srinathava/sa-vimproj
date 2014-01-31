@@ -65,11 +65,11 @@ function! MW_DebugUnitTests(what)
 
     if a:what == 'current'
         let fileDirRelPathToProj = strpart(expand('%:p:h'), len(projDir) + 1)
-        let pkgTestName = substitute(fileDirRelPathToProj, '/', '_', 'g')
+        let testName = substitute(fileDirRelPathToProj, '/', '_', 'g')
     elseif a:what == 'unit'
-        let pkgTestName = 'unittest'
+        let testName = 'unittest'
     elseif a:what == 'pkg'
-        let pkgTestName = 'pkgtest'
+        let testName = 'pkgtest'
     endif
 
     let sbrootDir = mw#utils#GetRootDir()
@@ -80,7 +80,24 @@ function! MW_DebugUnitTests(what)
     let projRelPathToMlRoot = strpart(projDir, len(mlroot) + 1)
 
     let testBinDir = mlroot.'/derived/glnxa64/testbin/'.projRelPathToMlRoot
-    let testPath = testBinDir.'/'.pkgTestName
+    let testPath = testBinDir.'/*'.testName
+
+    let testFiles = split(glob(testPath))
+    if len(testFiles) > 1
+        let choices = ['Multiple '.a:what.' tests found. Please select one: ']
+        for idx in range(len(testFiles))
+            call add(choices, idx.'. '.fnamemodify(testFiles[idx], ':t'))
+        endfor
+        let choice = inputlist(choices)
+        if choice <= 0
+            return
+        endif
+        let testPath = testFiles[choice]
+    elseif len(testFiles) == 1
+        let testPath = testFiles[0]
+    else
+        let testPath = ''
+    end
 
     if !executable(testPath)
         echohl Error
