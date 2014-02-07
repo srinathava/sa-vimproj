@@ -236,18 +236,46 @@ endfun
 if !exists('g:MWCompileLevel')
     let g:MWCompileLevel = 1
 endif
+
+if !exists('g:MWCustomCompile')
+    let g:MWCustomCompile = 'sbmake -distcc DEBUG=1 NORUNTESTS=1'
+endif
+
 function! mw#sbtools#SetCompileLevel()
-    let g:MWCompileLevel = inputlist(['Select compiler level:', '1. Mixed compile', '2. Compile in DEBUG at SUPER-STRICT level', '3. Compile in RELEASE at SUPER-STRICT level', '4. Unit-testing mode', '5. Lint in RELEASE mode', '6. Lint only mode', '7. Coverage mode'])
+    let g:MWCompileLevel = inputlist(['Select compiler level:', 
+        \ '1. Mixed compile', 
+        \ '2. Compile in DEBUG at SUPER-STRICT level', 
+        \ '3. Compile in RELEASE at SUPER-STRICT level', 
+        \ '4. Unit-testing mode', 
+        \ '5. Lint in RELEASE mode', 
+        \ '6. Lint only mode', 
+        \ '7. Coverage mode',
+        \ '8. Custom compile (specified using g:MWCustomCompile)'])
+
+    " Now if we get a custom compile line, lets verify that its OK.
+    if g:MWCompileLevel == 8
+        let g:MWCustomCompile = input('Edit current compiler invokation: ', g:MWCustomCompile)
+        return
+    endif
+
 endfunction " }}}
 " s:SetMakePrg: sets the 'makeprg' option for the current buffer {{{
 
 let g:MWDebug = 1
 let g:MWDisableGcc47 = 1
 function! s:SetMakePrg()
-    let &l:makeprg = 'sbmake -distcc'
+
     if g:MWCompileLevel == 7
         let &l:makeprg = 'sbmake  BCOV=1 -j 9'
+        return
     endif
+    
+    if g:MWCompileLevel == 8
+        let &l:makeprg = g:MWCustomCompile
+        return
+    endif
+
+    let &l:makeprg = 'sbmake -distcc'
     if g:MWCompileLevel != 4
         let &l:makeprg .= ' NOBUILDTESTS=1 NORUNTESTS=1'
     endif
