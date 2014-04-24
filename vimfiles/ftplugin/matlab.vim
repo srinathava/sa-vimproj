@@ -12,6 +12,10 @@ if !exists('g:FoldMatlab')
     let g:FoldMatlab = 1
 end
 
+if !exists('g:ShowMlintMessagesOnWrite')
+    let g:ShowMlintMessagesOnWrite = 1
+end
+
 " s:SetLocalSettings: set local settings {{{
 " Description: 
 function! s:SetLocalSettings()
@@ -112,10 +116,12 @@ endfunction " }}}
 
 call s:SetLocalSettings()
 
-augroup RefreshLint
-    au!
-    au BufWritePost   *.m :call RefreshLintMessages()
-    au BufWritePost   *.cdr :call RefreshLintMessages()
-augroup END
+if g:ShowMlintMessagesOnWrite
+    augroup RefreshLint
+        au!
+        au BufWritePost   *.m :call RefreshLintMessages()
+        au BufWritePost   *.cdr :call RefreshLintMessages()
+    augroup END
+endif
 
 " vim600:fdm=marker

@@ -128,9 +128,9 @@ amenu &Mathworks.&Debug.&1\ MATLAB\ -nojvm          :call MW_StartMatlab(1, '-no
 amenu &Mathworks.&Debug.&2\ MATLAB\ -nodesktop      :call MW_StartMatlab(1, '-nodesktop -nosplash')<CR>
 amenu &Mathworks.&Debug.&3\ MATLAB\ desktop         :call MW_StartMatlab(1, '-desktop')<CR>
 amenu &Mathworks.&Debug.&Attach\ to\ MATLAB         :call MW_AttachToMatlab('MATLAB', '-nojvm')<CR>
-amenu &Mathworks.&Debug.&4\ current\ unit/pkgtest   :call MW_DebugUnitTests('current')<CR>
-amenu &Mathworks.&Debug.&5\ unittest                :call MW_DebugUnitTests('unit')<CR>
-amenu &Mathworks.&Debug.&6\ pkgtest                 :call MW_DebugUnitTests('pkg')<CR>
+amenu &Mathworks.&Debug.&current\ unit/pkgtest   :call MW_DebugUnitTests('current')<CR>
+amenu &Mathworks.&Debug.&unittest                :call MW_DebugUnitTests('unit')<CR>
+amenu &Mathworks.&Debug.&pkgtest                 :call MW_DebugUnitTests('pkg')<CR>
 
 amenu &Mathworks.&Run.&1\ MATLAB\ -nojvm        :call MW_StartMatlab(0, '-nojvm')<CR>
 amenu &Mathworks.&Run.&2\ MATLAB\ -nodesktop    :call MW_StartMatlab(0, '-nodesktop -nosplash')<CR>
