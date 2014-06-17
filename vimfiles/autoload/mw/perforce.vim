@@ -1,6 +1,9 @@
 " ==============================================================================
 " Perforce commands
 " ============================================================================== 
+
+let s:scriptPath = expand('<sfile>:p:h')
+
 " mw#perforce#IsInPerforceSandbox: Is this file in a perforce sandbox {{{
 function! mw#perforce#IsInPerforceSandbox(fileName)
     let bufferDir = fnamemodify(a:fileName, ':p:h')
@@ -21,9 +24,6 @@ function! mw#perforce#AddFileToPerforce(fileName)
         return
     endif
 
-    let p4stat = system('p4 fstat '.a:fileName)
-    if p4stat =~ 'no such file'
-        call system('p4 add '.a:fileName)
-    endif
-    call system('p4 edit '.a:fileName)
+    let cmd = s:scriptPath.'/addToPerforce.py '.a:fileName.' &'
+    call system(cmd)
 endfunction " }}}
