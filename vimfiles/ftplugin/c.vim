@@ -17,17 +17,25 @@ imap <silent> <buffer> <C-e> <C-r>=C_CompleteWord()<CR>
 if exists('b:did_mw_c_ftplugin')
     finish
 endif
-let b:did_mw_c_ftplugin = 1
 
+let b:did_mw_c_ftplugin = 1
 call mw#tag#AddSandboxTags(expand('%:p'))
+let Tlist_Process_File_Always = 1
+let Tlist_Auto_Update = 1
+TlistUpdate
+set statusline=%<%f\ %m%r%h%(%{GetCurrentTagOrEmpty()}%)%=%l,%c\ (%p%%)
 
 if exists('*ToggleSrcHeader')
     finish
 endif
 
+" ==============================================================================
+" Only function / command definitions below here!
+" ============================================================================== 
+
 " ToggleSrcHeader: toggles between a .h and .c file  {{{
 " (as long as they are in the same directory)
-fun! ToggleSrcHeader()
+function! ToggleSrcHeader()
     let fname = expand('%:p:r')
     let ext = expand('%:e')
     if ext =~ '[cC]'
@@ -40,6 +48,7 @@ fun! ToggleSrcHeader()
         exec 'drop '.other
     endif
 endfunction " }}}
+
 command! -nargs=0 EH :call ToggleSrcHeader()
 
 " CompleteTag: makes a tag from last word {{{
@@ -55,3 +64,13 @@ function! C_CompleteWord()
     endif
 endfunction " }}}
 
+" GetCurrentTagOrEmpty:  {{{
+" Description: 
+function! GetCurrentTagOrEmpty()
+    let txt = Tlist_Get_Tagname_By_Line()
+    if txt == ''
+        return txt
+    else
+        return '['.txt.']'
+
+endfunction " }}}

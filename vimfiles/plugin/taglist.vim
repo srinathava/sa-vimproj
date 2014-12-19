@@ -2178,6 +2178,7 @@ function! s:Tlist_Parse_Tagline(tag_line)
     let tag_name = strpart(a:tag_line, 0, stridx(a:tag_line, "\t"))
 
     " Extract the tag scope/prototype
+    let tag_scope = ''
     if g:Tlist_Display_Prototype
         let ttxt = '    ' . s:Tlist_Get_Tag_Prototype(s:fidx, s:tidx)
     else
@@ -2198,6 +2199,7 @@ function! s:Tlist_Parse_Tagline(tag_line)
 
     " Save the tag name
     let {fidx_tidx}_tag_name = tag_name
+    let {fidx_tidx}_tag_scope = tag_scope
 endfunction
 
 " Tlist_Process_File
@@ -3709,6 +3711,10 @@ function! Tlist_Get_Tagname_By_Line(...)
         return ""
     endif
 
+    let tag_scope = s:tlist_{fidx}_{tidx}_tag_scope
+    if tag_scope != ''
+        return tag_scope . '::' . s:tlist_{fidx}_{tidx}_tag_name
+    endif
     return s:tlist_{fidx}_{tidx}_tag_name
 endfunction
 

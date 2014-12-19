@@ -41,6 +41,7 @@ augroup MWRefreshProjectTags
     au BufWritePost * 
         \ : if has('unix') == 1 
         \ |     exec 'silent! !genVimTags.py '.expand('%:p:h').' &> /dev/null &'
+        \ |     TlistUpdate
         \ | endif
 augroup END
 

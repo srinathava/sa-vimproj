@@ -9,7 +9,7 @@ if exists('*s:SetLocalSettings')
 end
 
 if !exists('g:FoldMatlab')
-    let g:FoldMatlab = 1
+    let g:FoldMatlab = 0
 end
 
 if !exists('g:ShowMlintMessagesOnWrite')
