@@ -230,60 +230,94 @@ endfun
 " ==============================================================================
 " Compiling projects
 " ============================================================================== 
-" mw#sbtools#SetCompileLevel:  {{{
+" mw#sbtools#SetCompileLevelForProject:  {{{
 " Description: 
 
-if !exists('g:MWCompileLevel')
-    let g:MWCompileLevel = 1
+if !exists('g:MWProjectCompileLevel')
+    let g:MWProjectCompileLevel = 1
 endif
 
 if !exists('g:MWCustomCompile')
     let g:MWCustomCompile = 'sbmake -distcc DEBUG=1 NORUNTESTS=1'
 endif
 
-function! mw#sbtools#SetCompileLevel()
-    let g:MWCompileLevel = inputlist(['Select compiler level:', 
-        \ '1. Mixed compile', 
-        \ '2. Compile in DEBUG at SUPER-STRICT level', 
-        \ '3. Compile in RELEASE at SUPER-STRICT level', 
-        \ '4. Unit-testing mode', 
-        \ '5. Lint in RELEASE mode', 
-        \ '6. Lint only mode', 
-        \ '7. Coverage mode',
-        \ '8. Custom compile (specified using g:MWCustomCompile)'])
+function! mw#sbtools#SetCompileLevelForProject()
+    " User selects configuration when building a project 
+    let g:MWProjectCompileLevel = inputlist(['Select compiler level for compiling project:', 
+        \ '1. Build source only',
+        \ '2. Build source and test',
+        \ '3. Build and run tests',
+        \ '4. Build for coverage',
+        \ '5. Custom compile (specified using g:MWCustomCompile)'])
 
     " Now if we get a custom compile line, lets verify that its OK.
-    if g:MWCompileLevel == 8
+    if g:MWProjectCompileLevel == 5
         let g:MWCustomCompile = input('Edit current compiler invokation: ', g:MWCustomCompile)
-        return
     endif
-
 endfunction " }}}
-" s:SetMakePrg: sets the 'makeprg' option for the current buffer {{{
+" mw#sbtools#SetCompileLevelForFile:  {{{
+" Description: 
 
+if !exists('g:MWFileCompileLevel')
+    let g:MWFileCompileLevel = 1
+endif
+
+function! mw#sbtools#SetCompileLevelForFile()
+    " User selects configuration when building a single file
+     let g:MWFileCompileLevel = inputlist(['Select compiler level for compiling a single file:', 
+        \ '1. Mixed compile (sbcc -cc MIXED@DEFAULT)',
+        \ '2. Debug compile (sbcc -dc)',
+        \ '3. Release compile (sbcc -rc)',
+        \ '4. Multi-compile (sbcc -standard)',
+        \ '5. Polyspace bug finder (sbcc -polyspace RELEASE)',
+        \ '6. Lint only mode (sbcc -lint RELEASE)', 
+        \ '7. Minimize includes (not yet supported)'])
+endfunction " }}}
+" s:SetProjectMakePrg: sets the 'makeprg' option for the current buffer {{{
 let g:MWDebug = 1
-let g:MWDisableGcc47 = 1
-function! s:SetMakePrg()
-
-    if g:MWCompileLevel == 7
-        let &l:makeprg = 'sbmake  BCOV=1 -j 9'
-        return
-    endif
-    
-    if g:MWCompileLevel == 8
+function! s:SetProjectMakeProgram()
+    if g:MWProjectCompileLevel == 1
+        "1. Build source only"
+        let &l:makeprg = 'sbmake  -distcc NOBUILDTEST=1 NORUNTESTS=1 DEBUG=1'
+    elseif g:MWProjectCompileLevel == 2
+        "2. Build source and test"
+        let &l:makeprg = 'sbmake  -distcc NORUNTESTS=1 DEBUG=1'
+    elseif g:MWProjectCompileLevel == 3
+        "3. Build and run tests"
+        let &l:makeprg = 'sbmake  -distcc DEBUG=1'
+    elseif g:MWProjectCompileLevel == 4
+        "4. Build for coverage"
+        let &l:makeprg = 'sbmake  BCOV=1 -j 9 DEBUG=1'
+    elseif g:MWProjectCompileLevel == 5
+        "5. Custom compile (specified using g:MWCustomCompile)'])
         let &l:makeprg = g:MWCustomCompile
-        return
+    else
+        let &l:makeprg = 'sbmake -distcc' "ERROR?"
     endif
-
-    let &l:makeprg = 'sbmake -distcc'
-    if g:MWCompileLevel != 4
-        let &l:makeprg .= ' NOBUILDTESTS=1 NORUNTESTS=1'
-    endif
-    if g:MWDebug == 1
-        let &l:makeprg .= ' DEBUG=1'
-    endif
-    if g:MWDisableGcc47
-        let &l:makeprg .= ' DISABLE_OBJ_GCC47=1'
+endfunction " }}}
+" s:SetFileMakePrg: sets the 'makeprg' option for the current buffer {{{
+function! s:SetFileMakeProgram(fileToBuild)
+    if g:MWFileCompileLevel == 1
+        "1. Mixed compile (sbcc -cc MIXED@DEFAULT)"
+        let &l:makeprg = 'sbcc -cc MIXED@DEFAULT ' . a:fileToBuild
+    elseif g:MWFileCompileLevel == 2
+        "2. Debug compile (sbcc -dc)"
+        let &l:makeprg = 'sbcc -dc ' . a:fileToBuild
+    elseif g:MWFileCompileLevel == 3
+        "3. Release compile (sbcc -rc)"
+        let &l:makeprg = 'sbcc -rc ' . a:fileToBuild
+    elseif g:MWFileCompileLevel == 4
+        "4. Multi-compile (sbcc -standard)"
+        let &l:makeprg = 'sbcc -standard ' . a:fileToBuild
+    elseif g:MWFileCompileLevel == 5
+        "5. Polyspace bug finder (sbcc -polyspace RELEASE)"
+        let &l:makeprg = 'sbcc -polyspace RELEASE ' . a:fileToBuild
+    elseif g:MWFileCompileLevel == 6
+        "6. Lint only mode (sbcc -lint RELEASE)"
+        let &l:makeprg = 'sbcc -lint RELEASE ' . a:fileToBuild
+    elseif g:MWFileCompileLevel == 7
+        "7. Minimize includes (not yet supported)"
+        let &l:makeprg = 'sbmininclude ' . a:fileToBuild
     endif
 endfunction " }}}
 " mw#sbtools#GetCurrentProjDir {{{
@@ -315,7 +349,7 @@ function! mw#sbtools#CompileProject()
         return
     end
     let oldMakePrg = &l:makeprg
-    call s:SetMakePrg()
+    call s:SetProjectMakeProgram()
     make!
     let &l:makeprg = oldMakePrg
     cwindow
@@ -325,7 +359,8 @@ function! mw#sbtools#CompileProject()
     endif
 
     exec 'cd '.olddir
-endfunction " }}}
+endfunction 
+" }}}
 " mw#sbtools#CompileFile: compiles present file {{{
 " Description: 
 function! mw#sbtools#CompileFile()
@@ -336,36 +371,16 @@ function! mw#sbtools#CompileFile()
     let noDebug   =  " -skip 'compile DEBUG noreason'"
 
     exec 'cd '.expand('%:p:h')
+
     let oldMakePrg = &l:makeprg
-
-    let &l:makeprg = "sbcc"
-    if g:MWCompileLevel == 1
-        let &l:makeprg .= noLint . noRelease . noDebug
-    endif
-    if g:MWCompileLevel == 2
-        let &l:makeprg .= noLint . noRelease
-    end
-    if g:MWCompileLevel == 3
-        let &l:makeprg .= noLint
-    end
-    if g:MWCompileLevel == 4 || g:MWCompileLevel == 7
-        let &l:makeprg .= noLint . noRelease . noDebug
-        " run with unittests on
-    end
-    if g:MWCompileLevel == 5
-        " do nothing , just sbcc
-    end
-    if g:MWCompileLevel == 6
-        let &l:makeprg .= ' -l'
-    endif
-
-    let &l:makeprg .= ' '.expand('%:p')
-    make! 
+    call s:SetFileMakeProgram(expand('%:p'))
+    make!
     let &l:makeprg = oldMakePrg
     cwindow
-    
+
     exec 'cd '.olddir
-endfunction " }}}
+endfunction 
+" }}}
 " mw#sbtools#BuildUsingDas:  {{{
 function! mw#sbtools#BuildUsingDas()
     let logFile = '/tmp/_DAS_OUTPUT_'.$USER
