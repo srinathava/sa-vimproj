@@ -6,20 +6,23 @@ function! s:FilterList()
 
     let pattern = substitute(getline(1), 'Enter pattern: ', '', 'g')
 
+    call mw#debug#Debug('open', 'pattern = '.pattern.', s:pattern = '.s:pattern)
+
     if stridx(pattern, s:pattern, 0) == -1
         " This is a completely new pattern, so we need to start afresh
         silent! 2,$ d_
         call setline(2, s:allLines)
     end
     let s:pattern = pattern
+    if s:pattern != ''
+        let pattern = substitute(pattern, ' ', '.*', 'g')
+        let pattern = substitute(pattern, '/', '\/', 'g')
 
-    let pattern = substitute(pattern, ' ', '.*', 'g')
-    let pattern = substitute(pattern, '/', '\/', 'g')
+        exec 'silent! 2,$ v/'.pattern.'/d_'
 
-    exec 'silent! 2,$ v/'.pattern.'/d_'
-
-    if search('^>', 'n') == 0
-        call setline(2, substitute(getline(2), '^\s', '>', ''))
+        if search('^>', 'n') == 0
+            call setline(2, substitute(getline(2), '^\s', '>', ''))
+        endif
     endif
 
     call setpos('.', curpos)
