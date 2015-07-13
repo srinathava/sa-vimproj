@@ -238,7 +238,7 @@ if !exists('g:MWProjectCompileLevel')
 endif
 
 if !exists('g:MWCustomCompile')
-    let g:MWCustomCompile = 'sbmake -distcc DEBUG=1 NORUNTESTS=1'
+    let g:MWCustomCompile = 'sbmake -distcc DEBUG=1 NOBUILDTESTS=1 NORUNTESTS=1'
 endif
 
 function! mw#sbtools#SetCompileLevelForProject()
@@ -278,7 +278,7 @@ let g:MWDebug = 1
 function! s:SetProjectMakeProgram()
     if g:MWProjectCompileLevel == 1
         "1. Build source only"
-        let &l:makeprg = 'sbmake  -distcc NOBUILDTEST=1 NORUNTESTS=1 DEBUG=1'
+        let &l:makeprg = 'sbmake  -distcc NOBUILDTESTS=1 NORUNTESTS=1 DEBUG=1'
     elseif g:MWProjectCompileLevel == 2
         "2. Build source and test"
         let &l:makeprg = 'sbmake  -distcc NORUNTESTS=1 DEBUG=1'
