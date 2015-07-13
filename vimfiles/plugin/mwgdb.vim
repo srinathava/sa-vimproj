@@ -34,6 +34,27 @@ function! MW_AttachToMatlab(pid, mode)
     call gdb#gdb#Continue()
 endfunction " }}}
 
+" MW_StartMatlabWithCustomCmdLineArgs{{{
+" Description:
+
+let s:customArgs = '-nodesktop -nosplash'
+function! MW_StartMatlabWithCustomCmdLineArgs(attach)
+    echomsg "Provide command line arguments to start MATLAB."
+    echohl WarningMsg
+    echomsg "Note: Currently -r option can only take a single script name argument. Put all"
+    echomsg "MATLAB commands into an M file and provide the script name as the argument to -r."
+    echomsg " "
+    echohl None
+
+    let cmdLineArgs = input('Enter custom command line args: ', s:customArgs)
+    if cmdLineArgs == ''
+        return
+    endif
+
+    let s:customArgs = cmdLineArgs
+    call MW_StartMatlab(a:attach, s:customArgs)
+endfunction "}}}
+
 " MW_StartMatlab:  {{{
 " Description: 
 function! MW_StartMatlab(attach, mode)
@@ -127,6 +148,7 @@ command! MWDebug :call MW_StartMatlab(1, <f-args>)
 amenu &Mathworks.&Debug.&1\ MATLAB\ -nojvm          :call MW_StartMatlab(1, '-nojvm')<CR>
 amenu &Mathworks.&Debug.&2\ MATLAB\ -nodesktop      :call MW_StartMatlab(1, '-nodesktop -nosplash')<CR>
 amenu &Mathworks.&Debug.&3\ MATLAB\ desktop         :call MW_StartMatlab(1, '-desktop')<CR>
+amenu &Mathworks.&Debug.&4\ MATLAB\ custom          :call MW_StartMatlabWithCustomCmdLineArgs(1)<CR>
 amenu &Mathworks.&Debug.&Attach\ to\ MATLAB         :call MW_AttachToMatlab('MATLAB', '-nojvm')<CR>
 amenu &Mathworks.&Debug.&current\ unit/pkgtest   :call MW_DebugUnitTests('current')<CR>
 amenu &Mathworks.&Debug.&unittest                :call MW_DebugUnitTests('unit')<CR>
@@ -135,6 +157,7 @@ amenu &Mathworks.&Debug.&pkgtest                 :call MW_DebugUnitTests('pkg')<
 amenu &Mathworks.&Run.&1\ MATLAB\ -nojvm        :call MW_StartMatlab(0, '-nojvm')<CR>
 amenu &Mathworks.&Run.&2\ MATLAB\ -nodesktop    :call MW_StartMatlab(0, '-nodesktop -nosplash')<CR>
 amenu &Mathworks.&Run.&3\ MATLAB\ desktop       :call MW_StartMatlab(0, '-desktop')<CR>
-amenu &Mathworks.&Run.&4\ MATLAB\ -check_malloc :call MW_StartMatlab(0, '-check_malloc')<CR>
+amenu &Mathworks.&Run.&4\ MATLAB\ custom        :call MW_StartMatlabWithCustomCmdLineArgs(0)<CR>
+amenu &Mathworks.&Run.&5\ MATLAB\ -check_malloc :call MW_StartMatlab(0, '-check_malloc')<CR>
 
 " vim: fdm=marker
