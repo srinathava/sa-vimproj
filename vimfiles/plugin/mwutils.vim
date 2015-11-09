@@ -78,7 +78,7 @@ nmenu &Mathworks.&Find.In\ &Solution                :call mw#sbtools#FindInSolut
 nmenu &Mathworks.&Find.Using\ sb&id                 :call mw#sbtools#FindUsingSbid()<CR><C-R>=expand('<cword>')<CR>
 nmenu &Mathworks.&Find.Using\ sb&global             :call mw#sbtools#FindUsingSbglobal()<CR><C-R>=expand('<cword>')<CR>
 nmenu &Mathworks.&Find.Using\ &code\ search\ tool   :call mw#sbtools#FindUsingSourceCodeSearch()<CR><C-R>=expand('<cword>')<CR>
-nmenu &Mathworks.O&Pen\ file\ in\ project           :call mw#open#OpenFile()<CR>
+nmenu &Mathworks.O&Pen\ file\ in\ project<Tab><F4>  :call mw#open#OpenFile()<CR>
 
 amenu &Mathworks.-sep3- <Nop>
 amenu &Mathworks.&Compile\ Current\ Project     :call mw#sbtools#CompileProject()<CR>
